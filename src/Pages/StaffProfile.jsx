@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, User, Github, Linkedin, X } from 'lucide-react';
+import QRCode from 'react-qr-code'; 
 import Footer from '../Components/Footer';
 import Navbar from '../Components/Navbar';
 
 const StaffProfile = () => {
-  const { guruID } = useParams(); // Get the guruID from the URL
-  const [staff, setStaff] = useState(null); // State to store staff details
-  const [loading, setLoading] = useState(true); // State to manage loading
-  const [error, setError] = useState(''); // State to manage errors
-  const navigate = useNavigate(); // For navigation
+  const { guruID } = useParams(); 
+  const [staff, setStaff] = useState(null);
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState('');
+  const navigate = useNavigate(); 
 
-  // Fetch staff details based on guruID
   useEffect(() => {
     const fetchStaff = async () => {
       if (!guruID) {
@@ -23,7 +23,6 @@ const StaffProfile = () => {
 
       try {
         setLoading(true); // Start loading
-        console.log(`Fetching staff details for guruID: ${guruID}`); // Debugging log
 
         const { data, error } = await supabase
           .from('staff') // Replace 'staff' with your actual table name
@@ -37,7 +36,6 @@ const StaffProfile = () => {
 
         setStaff(data); // Set the staff data
       } catch (err) {
-        console.error('Error fetching staff:', err.message); // Log the error
         setError(err.message); // Set the error message
       } finally {
         setLoading(false); // Stop loading
@@ -64,7 +62,7 @@ const StaffProfile = () => {
       <>
         <Navbar />
         <div className="p-6 max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6 text-center">
+          <div className="p-6 text-center">
             <p className="text-[#ea0000]">{error}</p>
             <button
               onClick={() => navigate(-1)} // Go back to the previous page
@@ -131,11 +129,60 @@ const StaffProfile = () => {
                   <p><span className="text-gray-600">Phone:</span> {staff.phone || 'N/A'}</p>
                 </div>
 
+                {/* Social Profiles */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center">
+                    <span className="text-[#052880] mr-2">Social Profiles</span>
+                  </h3>
+                  <div className="flex space-x-4">
+                    {/* GitHub */}
+                    {staff.github_url && (
+                      <a
+                        href={staff.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-gray-700 hover:text-[#052880]"
+                      >
+                        <Github className="mr-1" size={18} />
+                        <span className="text-sm">GitHub</span>
+                      </a>
+                    )}
+
+                    {/* LinkedIn */}
+                    {staff.linkedin_url && (
+                      <a
+                        href={staff.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-gray-700 hover:text-[#052880]"
+                      >
+                        <Linkedin className="mr-1" size={18} />
+                        <span className="text-sm">LinkedIn</span>
+                      </a>
+                    )}
+
+                    {/* Twitter */}
+                    {staff.x_url && (
+                      <a
+                        href={staff.x_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-gray-700 hover:text-[#052880]"
+                      >
+                        <X className="mr-1" size={18} />
+                        <span className="text-sm"> (Formerly Twitter)</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Employment Details */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-semibold mb-2">Employment Details</h3>
                   <p><span className="text-gray-600">Type:</span> {staff.employment_type}</p>
-                  <p><span className="text-gray-600">Hire Date:</span> {new Date(staff.hire_date).toLocaleDateString()}</p>
+                  <p><span className="text-gray-600">Employment Date:</span> {new Date(staff.hire_date).toLocaleDateString()}</p>
                   <p><span className="text-gray-600">Status:</span>
                     <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
                       staff.id_status === 'active'
@@ -148,12 +195,22 @@ const StaffProfile = () => {
                     </span>
                   </p>
                 </div>
-              </div>
 
-              {/* Additional Information */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">Additional Information</h3>
-                <p>Last updated: {new Date(staff.updated_at).toLocaleString()}</p>
+                {/* QR Code Section */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Profile QR Code</h3>
+                  <div className="flex justify-center p-2 rounded">
+                    <QRCode 
+                      value={`${window.location.origin}/staff/${staff.guruID}`} // Generates the profile link
+                      size={128} // Size of the QR code
+                      fgColor="#052880" 
+                      bgColor="#ffffff" // Background color
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Scan to view this profile
+                  </p>
+                </div>
               </div>
             </div>
           </div>

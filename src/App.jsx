@@ -9,6 +9,7 @@ import Login from "./Pages/Login";
 import AdminPanel from "./Pages/AdminPanel";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import StaffProfile from "./Pages/StaffProfile";
+import StaffEdit from "./Components/AdminComponents/StaffEdit";
 // import Footer from "./Components/Footer";
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
         <Route path="/staff" element={<Staff />} />
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/staff/:guruID" element={<StaffProfile />} />
+        <Route path="/edit/:guruID" element={<StaffEdit />} />
 
         {/* Protected Route for Admin Panel */}
         <Route
