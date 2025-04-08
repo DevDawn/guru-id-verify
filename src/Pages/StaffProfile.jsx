@@ -124,7 +124,7 @@ const StaffProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {/* Personal Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">Personal Information</h3>
+                  <h3 className="text-[#052880] font-semibold mb-2">Personal Information</h3>
                   <p><span className="text-gray-600">Email:</span> {staff.email}</p>
                   <p><span className="text-gray-600">Phone:</span> {staff.phone || 'N/A'}</p>
                 </div>
@@ -162,7 +162,7 @@ const StaffProfile = () => {
                     )}
 
                     {/* Twitter */}
-                    {staff.x_url && (
+                    {/* {staff.x_url && (
                       <a
                         href={staff.x_url}
                         target="_blank"
@@ -172,7 +172,7 @@ const StaffProfile = () => {
                         <X className="mr-1" size={18} />
                         <span className="text-sm"> (Formerly Twitter)</span>
                       </a>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
@@ -180,7 +180,7 @@ const StaffProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Employment Details */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">Employment Details</h3>
+                  <h3 className="font-semibold mb-2 text-[#052880]">Employment Details</h3>
                   <p><span className="text-gray-600">Type:</span> {staff.employment_type}</p>
                   <p><span className="text-gray-600">Employment Date:</span> {new Date(staff.hire_date).toLocaleDateString()}</p>
                   <p><span className="text-gray-600">Status:</span>
@@ -198,7 +198,7 @@ const StaffProfile = () => {
 
                 {/* QR Code Section */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">Profile QR Code</h3>
+                  <h3 className="font-semibold mb-2 text-[#052880]">Profile QR Code</h3>
                   <div className="flex justify-center p-2 rounded">
                     <QRCode 
                       value={`${window.location.origin}/staff/${staff.guruID}`} // Generates the profile link
