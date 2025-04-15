@@ -1,22 +1,27 @@
-import { useState } from 'react'; // Add this import
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
   FilePlus, 
-  Settings, 
+  BookOpenCheck, 
+  CheckSquare, 
+  FolderSearch, 
   LogOut,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
 
 const AdminLayout = ({ children, activeTab, onTabChange, onLogout }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true); // useState is now properly imported
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const navItems = [
     { id: 'dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { id: 'staff', icon: <Users size={20} />, label: 'Staff Management' },
-    { id: 'add', icon: <FilePlus size={20} />, label: 'Add New Staff' }
+    { id: 'add', icon: <FilePlus size={20} />, label: 'Add New Staff' },
+    // 🎯 New Attendance Tabs
+    { id: 'attendance-overview', icon: <BookOpenCheck size={20} />, label: 'Attendance Overview' },
+    { id: 'mark-attendance', icon: <CheckSquare size={20} />, label: 'Mark Attendance' },
+    { id: 'view-records', icon: <FolderSearch size={20} />, label: 'View Records' }
   ];
 
   return (

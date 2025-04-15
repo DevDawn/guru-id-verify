@@ -27,7 +27,7 @@ const App = () => {
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/staff/:guruID" element={<StaffProfile />} />
         <Route path="/edit/:guruID" element={<StaffEdit />} />
-
+        
         {/* Protected Route for Admin Panel */}
         <Route
   path="/admin"

@@ -22,35 +22,6 @@ const StaffForm = ({ onSuccess }) => {
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
 
-  // const handleImageUpload = async (file) => {
-  //   if (!file) return;
-
-  //   setIsUploading(true);
-  //   setError('');
-
-  //   try {
-  //     const fileName = `${Date.now()}-${file.name}`;
-  //     const { data, error: uploadError } = await supabase.storage
-  //       .from('staff-images')
-  //       .upload(fileName, file);
-
-  //     if (uploadError) throw uploadError;
-
-  //     const { publicURL, error: urlError } = supabase.storage
-  //       .from('staff-images')
-  //       .getPublicUrl(fileName);
-
-  //     if (urlError) throw urlError;
-
-  //     setFormData({ ...formData, id_image_url: publicURL });
-  //     setImagePreview(publicURL);
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
-
   const handleImageUrlChange = (e) => {
     const url = e.target.value;
     setFormData({ ...formData, id_image_url: url });
@@ -122,18 +93,90 @@ const StaffForm = ({ onSuccess }) => {
           />
         </div>
 
-        {/* Image Upload */}
-        {/* <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+        {/* Email */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Image className="h-5 w-5 text-gray-400" />
+            <Mail className="h-5 w-5 text-gray-400" />
           </div>
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImageUpload(e.target.files[0])}
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="Email"
+            required
+          />
+        </div>
+
+        {/* Phone */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Phone className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="Phone"
+          />
+        </div>
+
+        {/* Department */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Briefcase className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={formData.department}
+            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="Department"
+            required
+          />
+        </div>
+
+        {/* Position */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Briefcase className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={formData.position}
+            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="Position"
+            required
+          />
+        </div>
+
+        {/* Employment Type */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <select
+            value={formData.employment_type}
+            onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
+            className="block w-full pl-3 pr-3 py-2 bg-transparent outline-none text-gray-700"
+          >
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+          </select>
+        </div>
+
+        {/* Hire Date */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Calendar className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="date"
+            value={formData.hire_date}
+            onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
             className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
           />
-        </div> */}
+        </div>
 
         {/* Image URL */}
         <div className="relative border-b border-gray-300 focus-within:border-blue-500">
@@ -156,8 +199,47 @@ const StaffForm = ({ onSuccess }) => {
           </div>
         )}
 
-        {/* Other Fields */}
-        {/* Add the rest of the form fields here as in the original code */}
+        {/* GitHub URL */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Github className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="url"
+            value={formData.github_url}
+            onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="GitHub URL"
+          />
+        </div>
+
+        {/* LinkedIn URL */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Linkedin className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="url"
+            value={formData.linkedin_url}
+            onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="LinkedIn URL"
+          />
+        </div>
+
+        {/* X (Twitter) URL */}
+        <div className="relative border-b border-gray-300 focus-within:border-blue-500">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Twitter className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="url"
+            value={formData.x_url}
+            onChange={(e) => setFormData({ ...formData, x_url: e.target.value })}
+            className="block w-full pl-10 pr-3 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-400"
+            placeholder="X (Twitter) URL"
+          />
+        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6">
