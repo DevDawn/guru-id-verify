@@ -119,15 +119,113 @@
 
 // export default AttendanceOverview;
 
-
-import React from 'react'
+import { useEffect, useState } from 'react';
+import { supabase } from "../../supabaseClient";
+import { Check, X, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 
 const AttendanceOverview = () => {
-  return (
-    <div>
-      THIS FEATURE IS UNDER DEVELOPMENT
-    </div>
-  )
-}
+  const [todayStats, setTodayStats] = useState(null);
+  const [comparisonStats, setComparisonStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-export default AttendanceOverview
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      
+      // Fetch today's stats
+      const { data: todayData } = await supabase
+        .from('staff')
+        .select('guruID, attendance!left(status, date)')
+        .eq('attendance.date', new Date().toISOString().split('T')[0]);
+
+      // Fetch yesterday's stats
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const { data: yesterdayData } = await supabase
+        .from('staff')
+        .select('guruID, attendance!left(status, date)')
+        .eq('attendance.date', yesterday.toISOString().split('T')[0]);
+
+      // Process today's data
+      const totalStaff = todayData?.length || 0;
+      const presentToday = todayData?.filter(s => s.attendance?.[0]?.status === 'Present').length || 0;
+      const absentToday = todayData?.filter(s => s.attendance?.[0]?.status === 'Absent').length || 0;
+      const unmarkedToday = totalStaff - presentToday - absentToday;
+
+      // Process yesterday's data
+      const presentYesterday = yesterdayData?.filter(s => s.attendance?.[0]?.status === 'Present').length || 0;
+
+      setTodayStats({
+        totalStaff,
+        present: presentToday,
+        absent: absentToday,
+        unmarked: unmarkedToday,
+        presentPercentage: Math.round((presentToday / totalStaff) * 100),
+        absentPercentage: Math.round((absentToday / totalStaff) * 100),
+        unmarkedPercentage: Math.round((unmarkedToday / totalStaff) * 100)
+      });
+
+      setComparisonStats({
+        changeCount: presentToday - presentYesterday,
+        changePercentage: presentYesterday > 0 
+          ? Math.round(((presentToday - presentYesterday) / presentYesterday) * 100)
+          : 0
+      });
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-8">Loading attendance Overview...</div>;
+  }
+
+  return (
+    <div className="bg-white rounded-lg  p-6">
+      <h2 className="text-2xl font-bold mb-6 text-[#052880]">Attendance Overview</h2>
+      
+      {/* Today's Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <h3 className="text-sm text-blue-600 mb-1">Total Staff</h3>
+          <p className="text-2xl ">{todayStats.totalStaff}</p>
+        </div>
+        
+        <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+          <h3 className="text-sm text-green-600 mb-1">Present</h3>
+          <p className="text-2xl ">{todayStats.present} <span className="text-sm">({todayStats.presentPercentage}%)</span></p>
+        </div>
+        
+        <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+          <h3 className="text-sm text-red-600 mb-1">Absent</h3>
+          <p className="text-2xl ">{todayStats.absent} <span className="text-sm">({todayStats.absentPercentage}%)</span></p>
+        </div>
+        
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="text-sm text-gray-600 mb-1">Unmarked</h3>
+          <p className="text-2xl ">{todayStats.unmarked} <span className="text-sm">({todayStats.unmarkedPercentage}%)</span></p>
+        </div>
+      </div>
+      
+      {/* Comparison with Yesterday */}
+      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+        <h3 className="text-sm text-yellow-700 mb-2">Compared to Yesterday</h3>
+        <div className="flex items-center">
+          {comparisonStats.changeCount >= 0 ? (
+            <TrendingUp className="text-green-500 mr-2" />
+          ) : (
+            <TrendingDown className="text-red-500 mr-2" />
+          )}
+          <p className="font-medium">
+            {comparisonStats.changeCount >= 0 ? '+' : ''}{comparisonStats.changeCount} staff ({comparisonStats.changePercentage >= 0 ? '+' : ''}{comparisonStats.changePercentage}%)
+          </p>
+          <span className="text-gray-500 ml-2">vs yesterday</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AttendanceOverview;

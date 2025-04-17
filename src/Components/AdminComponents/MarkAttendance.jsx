@@ -21,6 +21,7 @@ const MarkAttendance = () => {
   const [staffData, setStaffData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmationData, setConfirmationData] = useState(null);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -44,6 +45,34 @@ const MarkAttendance = () => {
   }, []);
 
   const currentDateKey = date.toISOString().split('T')[0];
+
+  useEffect(() => {
+    const fetchAttendanceData = async () => {
+      setAttendanceLoading(true);
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('guruID, status')
+        .eq('date', currentDateKey);
+
+      if (!error) {
+        const attendanceData = {};
+        data.forEach(record => {
+          attendanceData[record.guruID] = record.status;
+        });
+
+        setAttendance(prev => ({
+          ...prev,
+          [currentDateKey]: attendanceData
+        }));
+      } else {
+        console.error('Error fetching attendance:', error);
+      }
+      setAttendanceLoading(false);
+    };
+
+    fetchAttendanceData();
+  }, [currentDateKey]);
+
   const currentAttendance = attendance[currentDateKey] || {};
 
   const filteredStaff = staffData.filter((staff) => {
@@ -163,7 +192,7 @@ const MarkAttendance = () => {
   const unmarkedCount = staffData.length - presentCount - absentCount;
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden bg-white">
       <ToastContainer />
       <div className="flex flex-col md:flex-row">
         {/* Sidebar */}
@@ -219,9 +248,9 @@ const MarkAttendance = () => {
 
             <button
               onClick={handleResetAttendance}
-              className="w-full flex items-center justify-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+              className="w-full flex items-center justify-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors cursor-pointer"
             >
-              <RotateCcw size={16} />
+              {/* <RotateCcw size={16} /> */}
               Reset Today's Attendance
             </button>
           </div>
@@ -273,8 +302,8 @@ const MarkAttendance = () => {
 
           {/* Staff Cards */}
           <div className="space-y-3">
-            {loading ? (
-              <div className="text-center py-8 text-gray-500">Loading staff data...</div>
+            {loading || attendanceLoading ? (
+              <div className="text-center py-8 text-gray-500">Loading data...</div>
             ) : filteredStaff.length > 0 ? (
               filteredStaff.map((staff) => (
                 <div
@@ -290,18 +319,19 @@ const MarkAttendance = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                        {staff.full_name.charAt(0)}
+                        {/* {staff.full_name.charAt(0)} */}
+                        <img src={staff.id_image_url} alt={staff.full_name.charAt(0,1)} className='rounded-full h-10 w-10' />
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg">{staff.full_name}</h3>
+                        <h3 className="text-lg">{staff.full_name}</h3>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-600">
                           <span className="flex items-center">
-                            ID: {staff.guruID}
+                            {staff.guruID}
                           </span>
-                          <span className="flex items-center">
+                          {/* <span className="flex items-center">
                             <Clock className="mr-1" size={14} />
                             {currentTime.toLocaleTimeString()}
-                          </span>
+                          </span> */}
                         </div>
                       </div>
                     </div>
