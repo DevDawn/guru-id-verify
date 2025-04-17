@@ -325,11 +325,11 @@ const StatCard = ({ title, value, icon, color, trend }) => (
       </div>
       <div className="flex flex-col items-end">
         <span className="text-3xl">{icon}</span>
-        {trend === 'up' && (
+        {/* {trend === 'up' && (
           <span className="text-xs bg-white bg-opacity-30 px-2 py-1 rounded-full mt-2">
             ↑ Live
           </span>
-        )}
+        )} */}
       </div>
     </div>
   </div>
