@@ -108,14 +108,125 @@
 
 // export default AttendanceRecords;
 
-import React from 'react'
+import { useState, useEffect } from 'react';
+import { supabase } from "../../supabaseClient";
+import { Search } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AttendanceRecords = () => {
-  return (
-    <div>
-      THIS FEATURE IS UNDER DEVELOPMENT
-    </div>
-  )
-}
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [filteredRecords, setFilteredRecords] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStaff, setSelectedStaff] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-export default AttendanceRecords
+  useEffect(() => {
+    const fetchAttendanceRecords = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('guruID, date, status, staff(full_name)');
+      
+      if (error) {
+        console.error('Error fetching attendance records:', error);
+        toast.error('Failed to load attendance records');
+      } else {
+        setAttendanceRecords(data);
+        setFilteredRecords(data);
+      }
+      setLoading(false);
+    };
+
+    fetchAttendanceRecords();
+  }, []);
+
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+
+    const filtered = attendanceRecords.filter(record =>
+      record.staff.full_name.toLowerCase().includes(term) ||
+      record.guruID.toLowerCase().includes(term)
+    );
+    setFilteredRecords(filtered);
+  };
+
+  const handleSelectStaff = (guruID) => {
+    const staffRecords = attendanceRecords.filter(record => record.guruID === guruID);
+    setSelectedStaff(staffRecords);
+  };
+
+  return (
+    <div className="p-6 bg-white rounded-lg">
+      <ToastContainer />
+      <h2 className="text-2xl font-bold mb-4 text-[#052880]">Attendance Records</h2>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 text-[#052880]" size={18} />
+          <input
+            type="text"
+            placeholder="Search by name or ID..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="w-full pl-10 pr-4 py-2 border-[#052880] border rounded-lg outline-none transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Attendance Records */}
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Loading attendance records...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredRecords.map((record, index) => (
+            <div
+              key={index}
+              className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSelectStaff(record.guruID)}
+            >
+              <h3 className="text-lg font-semibold">{record.staff.full_name}</h3>
+              <p className="text-sm text-gray-600">{record.guruID}</p>
+              <p className="text-sm text-gray-600">{record.date}</p>
+              <p className={`text-sm font-medium ${record.status === 'Present' ? 'text-green-600' : 'text-red-600'}`}>
+                Status: {record.status}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Selected Staff Attendance History */}
+      {selectedStaff && (
+        <div className="mt-8">
+          <h3 className="text-xl font-bold mb-4 text-[#052880]">
+            Attendance History for {selectedStaff[0]?.staff.full_name}
+          </h3>
+          <div className="space-y-2">
+            {selectedStaff.map((record, index) => (
+              <div
+                key={index}
+                className="p-4 bg-white rounded-lg border border-gray-200"
+              >
+                <p className="text-sm text-gray-600">Date: {record.date}</p>
+                <p className={`text-sm font-medium ${record.status === 'Present' ? 'text-green-600' : 'text-red-600'}`}>
+                  Status: {record.status}
+                </p>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setSelectedStaff(null)}
+            className="mt-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
+          >
+            Back to All Records
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AttendanceRecords;
