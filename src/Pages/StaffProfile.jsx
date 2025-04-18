@@ -104,7 +104,7 @@ const StaffProfile = () => {
                 <img
                   src={staff.id_image_url}
                   alt={staff.full_name}
-                  className="w-full h-auto rounded-lg border-2 border-gray-200"
+                  className="w-full h-60 rounded-lg border-2 border-gray-200"
                   onError={(e) => (e.target.src = '/placeholder-image.png')} // Fallback to placeholder
                 />
               ) : (

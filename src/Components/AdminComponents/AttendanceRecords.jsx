@@ -1,228 +1,237 @@
-// import React, { useState, useEffect } from "react";
-// import { supabase } from "../../supabaseClient"; // Adjust the path to your Supabase config
-// import ReactPaginate from "react-paginate";
-
-// const AttendanceRecords = () => {
-//   const [attendanceRecords, setAttendanceRecords] = useState([]);
-//   const [filteredRecords, setFilteredRecords] = useState([]);
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [currentPage, setCurrentPage] = useState(0);
-//   const recordsPerPage = 10;
-
-//   useEffect(() => {
-//     fetchAttendanceRecords();
-//   }, []);
-
-//   useEffect(() => {
-//     handleSearch();
-//   }, [searchQuery, attendanceRecords]);
-
-//   const fetchAttendanceRecords = async () => {
-//     try {
-//       const { data, error } = await supabase
-//         .from("attendance")
-//         .select("id, date, status, staff (name)")
-//         .order("date", { ascending: false });
-
-//       if (error) throw error;
-
-//       setAttendanceRecords(data);
-//       setFilteredRecords(data);
-//     } catch (error) {
-//       console.error("Error fetching attendance records:", error.message);
-//     }
-//   };
-
-//   const handleSearch = () => {
-//     const filtered = attendanceRecords.filter((record) =>
-//       record.staff.name.toLowerCase().includes(searchQuery.toLowerCase())
-//     );
-//     setFilteredRecords(filtered);
-//     setCurrentPage(0); // Reset to the first page on search
-//   };
-
-//   const handlePageClick = ({ selected }) => {
-//     setCurrentPage(selected);
-//   };
-
-//   const displayedRecords = filteredRecords.slice(
-//     currentPage * recordsPerPage,
-//     (currentPage + 1) * recordsPerPage
-//   );
-
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
-//       <div className="mb-4">
-//         <input
-//           type="text"
-//           placeholder="Search by staff name"
-//           className="border border-gray-300 rounded-md p-2 w-full"
-//           value={searchQuery}
-//           onChange={(e) => setSearchQuery(e.target.value)}
-//         />
-//       </div>
-//       <div className="overflow-x-auto">
-//         <table className="table-auto w-full border-collapse border border-gray-300">
-//           <thead>
-//             <tr className="bg-gray-100">
-//               <th className="border border-gray-300 px-4 py-2">Staff Name</th>
-//               <th className="border border-gray-300 px-4 py-2">Date</th>
-//               <th className="border border-gray-300 px-4 py-2">Status</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {displayedRecords.map((record) => (
-//               <tr key={record.id}>
-//                 <td className="border border-gray-300 px-4 py-2">
-//                   {record.staff.name}
-//                 </td>
-//                 <td className="border border-gray-300 px-4 py-2">
-//                   {new Date(record.date).toLocaleDateString()}
-//                 </td>
-//                 <td className="border border-gray-300 px-4 py-2">
-//                   {record.status}
-//                 </td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
-//       <div className="mt-4">
-//         <ReactPaginate
-//           previousLabel={"Previous"}
-//           nextLabel={"Next"}
-//           pageCount={Math.ceil(filteredRecords.length / recordsPerPage)}
-//           onPageChange={handlePageClick}
-//           containerClassName={"flex justify-center space-x-2"}
-//           previousLinkClassName={"px-3 py-1 bg-gray-200 rounded"}
-//           nextLinkClassName={"px-3 py-1 bg-gray-200 rounded"}
-//           disabledClassName={"opacity-50 cursor-not-allowed"}
-//           activeClassName={"font-bold"}
-//           pageClassName={"px-3 py-1 bg-gray-100 rounded"}
-//         />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AttendanceRecords;
-
 import { useState, useEffect } from 'react';
 import { supabase } from "../../supabaseClient";
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const AttendanceRecords = () => {
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [filteredRecords, setFilteredRecords] = useState([]);
+  const [staffList, setStaffList] = useState([]);
+  const [filteredStaff, setFilteredStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStaff, setSelectedStaff] = useState(null);
+  const [staffAttendanceDetails, setStaffAttendanceDetails] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAttendanceRecords = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('attendance')
-        .select('guruID, date, status, staff(full_name)');
       
-      if (error) {
-        console.error('Error fetching attendance records:', error);
-        toast.error('Failed to load attendance records');
-      } else {
-        setAttendanceRecords(data);
-        setFilteredRecords(data);
+      try {
+        // First fetch all staff
+        const { data: staffData, error: staffError } = await supabase
+          .from('staff')
+          .select('guruID, full_name, id_image_url');
+        
+        if (staffError) throw staffError;
+
+        // Then fetch latest attendance for each staff
+        const { data: attendanceData, error: attendanceError } = await supabase
+          .from('attendance')
+          .select('guruID, date, status')
+          .order('date', { ascending: false });
+
+        if (attendanceError) throw attendanceError;
+
+        // Merge staff data with their latest attendance
+        const staffWithAttendance = staffData.map(staff => {
+          const latestAttendance = attendanceData.find(a => a.guruID === staff.guruID);
+          return {
+            ...staff,
+            latestStatus: latestAttendance?.status || 'Unmarked',
+            latestDate: latestAttendance?.date || null
+          };
+        });
+
+        setStaffList(staffWithAttendance);
+        setFilteredStaff(staffWithAttendance);
+      } catch (error) {
+        toast.error('Failed to load data');
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    fetchAttendanceRecords();
+    fetchData();
   }, []);
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
 
-    const filtered = attendanceRecords.filter(record =>
-      record.staff.full_name.toLowerCase().includes(term) ||
-      record.guruID.toLowerCase().includes(term)
+    const filtered = staffList.filter(staff =>
+      staff.full_name.toLowerCase().includes(term) ||
+      staff.guruID.toLowerCase().includes(term)
     );
-    setFilteredRecords(filtered);
+    setFilteredStaff(filtered);
   };
 
-  const handleSelectStaff = (guruID) => {
-    const staffRecords = attendanceRecords.filter(record => record.guruID === guruID);
-    setSelectedStaff(staffRecords);
+  const handleSelectStaff = async (guruID) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('date, status')
+        .eq('guruID', guruID)
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      const staff = staffList.find(s => s.guruID === guruID);
+      setSelectedStaff(staff);
+      setStaffAttendanceDetails(data || []);
+    } catch (error) {
+      toast.error('Failed to load attendance records');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleBackToList = () => {
+    setSelectedStaff(null);
+  };
+
+  // Calculate stats for selected staff
+  const presentCount = staffAttendanceDetails.filter(r => r.status === 'Present').length;
+  const absentCount = staffAttendanceDetails.filter(r => r.status === 'Absent').length;
+  const totalRecords = staffAttendanceDetails.length;
 
   return (
     <div className="p-6 bg-white rounded-lg">
       <ToastContainer />
-      <h2 className="text-2xl font-bold mb-4 text-[#052880]">Attendance Records</h2>
-
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-3 text-[#052880]" size={18} />
-          <input
-            type="text"
-            placeholder="Search by name or ID..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 border-[#052880] border rounded-lg outline-none transition-all"
-          />
-        </div>
+      
+      {/* Header with conditional back button */}
+      <div className="flex items-center mb-4">
+        {selectedStaff && (
+          <button 
+            onClick={handleBackToList}
+            className="mr-2 text-[#052880] hover:text-blue-700"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
+        <h2 className="text-2xl font-bold text-[#052880]">
+          {selectedStaff ? `${selectedStaff.full_name}'s Attendance` : 'Staff Attendance'}
+        </h2>
       </div>
 
-      {/* Attendance Records */}
-      {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading attendance records...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredRecords.map((record, index) => (
-            <div
-              key={index}
-              className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer"
-              onClick={() => handleSelectStaff(record.guruID)}
-            >
-              <h3 className="text-lg font-semibold">{record.staff.full_name}</h3>
-              <p className="text-sm text-gray-600">{record.guruID}</p>
-              <p className="text-sm text-gray-600">{record.date}</p>
-              <p className={`text-sm font-medium ${record.status === 'Present' ? 'text-green-600' : 'text-red-600'}`}>
-                Status: {record.status}
-              </p>
-            </div>
-          ))}
+      {/* Search Bar (only shown in list view) */}
+      {!selectedStaff && (
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 text-[#052880]" size={18} />
+            <input
+              type="text"
+              placeholder="Search by name or ID..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full pl-10 pr-4 py-2 border-[#052880] border rounded-lg outline-none transition-all"
+            />
+          </div>
         </div>
       )}
 
-      {/* Selected Staff Attendance History */}
-      {selectedStaff && (
-        <div className="mt-8">
-          <h3 className="text-xl font-bold mb-4 text-[#052880]">
-            Attendance History for {selectedStaff[0]?.staff.full_name}
-          </h3>
-          <div className="space-y-2">
-            {selectedStaff.map((record, index) => (
-              <div
-                key={index}
-                className="p-4 bg-white rounded-lg border border-gray-200"
-              >
-                <p className="text-sm text-gray-600">Date: {record.date}</p>
-                <p className={`text-sm font-medium ${record.status === 'Present' ? 'text-green-600' : 'text-red-600'}`}>
-                  Status: {record.status}
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Loading...</div>
+      ) : selectedStaff ? (
+        /* Staff Details View */
+        <div>
+          {/* Staff Summary */}
+          <div className="flex items-center mb-6">
+            <img 
+              src={selectedStaff.id_image_url} 
+              alt={selectedStaff.full_name}
+              className="w-16 h-16 rounded-full object-cover mr-4"
+            />
+            <div>
+              <h3 className="text-xl font-semibold">{selectedStaff.full_name}</h3>
+              <p className="text-gray-600">{selectedStaff.guruID}</p>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+              <h3 className="text-sm text-green-600 mb-1">Present</h3>
+              <p className="text-2xl font-bold">{presentCount}</p>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+              <h3 className="text-sm text-red-600 mb-1">Absent</h3>
+              <p className="text-2xl font-bold">{absentCount}</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <h3 className="text-sm text-blue-600 mb-1">Total Records</h3>
+              <p className="text-2xl font-bold">{totalRecords}</p>
+            </div>
+          </div>
+
+          {/* Attendance History */}
+          <h3 className="text-lg font-semibold mb-3">Attendance History</h3>
+          {staffAttendanceDetails.length > 0 ? (
+            <div className="space-y-2">
+              {staffAttendanceDetails.map((record, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-lg border ${
+                    record.status === 'Present'
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{record.date}</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      record.status === 'Present'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {record.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No attendance records found for this staff member
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Staff List View */
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredStaff.map((staff) => (
+            <div
+              key={staff.guruID}
+              className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSelectStaff(staff.guruID)}
+            >
+              <div className="flex items-center">
+                {/* <img 
+                  src={staff.id_image_url} 
+                  alt={staff.full_name}
+                  className="w-12 h-12 rounded-full object-cover mr-3"
+                /> */}
+                <div>
+                  <h3 className="text-lg font-semibold">{staff.full_name}</h3>
+                  <p className="text-sm text-gray-600">{staff.guruID}</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                {/* <p className="text-sm text-gray-600">
+                  Latest: {staff.latestDate || 'No records'}
+                
+                </p> */}
+                <p className={`text-sm font-medium ${
+                  staff.latestStatus === 'Present' ? 'text-green-600' :
+                  staff.latestStatus === 'Absent' ? 'text-red-600' : 'text-gray-600'
+                }`}>
+                  Current Status: {staff.latestStatus}
                 </p>
               </div>
-            ))}
-          </div>
-          <button
-            onClick={() => setSelectedStaff(null)}
-            className="mt-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
-          >
-            Back to All Records
-          </button>
+            </div>
+          ))}
         </div>
       )}
     </div>

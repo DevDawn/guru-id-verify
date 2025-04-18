@@ -281,7 +281,7 @@ const DashboardStats = () => {
           value={stats.totalAttendance}
           icon="📝"
           color="bg-purple-100 text-purple-800"
-          trend={stats.totalAttendance > 0 ? 'up' : 'none'}
+          trend={stats.absentToday + status.presentToday}
         />
         <StatCard
           title="Present Today"

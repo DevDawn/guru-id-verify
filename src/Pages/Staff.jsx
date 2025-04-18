@@ -40,7 +40,7 @@ const Staff = () => {
       <div className="bg-white rounded-lg shadow overflow-hidden p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-semibold text-2xl text-[#052880]">Staff Directory</h3>
-          <div className="flex space-x-2">
+          {/* <div className="flex space-x-2">
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
@@ -51,7 +51,7 @@ const Staff = () => {
               <option value="expired">Expired</option>
               <option value="revoked">Revoked</option>
             </select>
-          </div>
+          </div> */}
         </div>
 
         {loading ? (
@@ -77,7 +77,7 @@ const Staff = () => {
                     <img
                       src={person.id_image_url}
                       alt={person.full_name || 'Staff Image'}
-                      className="w-full h-52 object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-52  transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => (e.target.src = '/placeholder-image.png')} // Fallback to placeholder
                     />
                   ) : (
