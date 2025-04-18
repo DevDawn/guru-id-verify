@@ -46,9 +46,9 @@ const StaffList = () => {
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="p-4 border-b flex justify-between items-center">
-        <h3 className="font-semibold text-lg">Staff Members</h3>
-        <div className="flex space-x-2">
+      <div className="p-4 border-b border-[#052880] flex justify-between items-center">
+        <h3 className="font-bold text-lg text-[#052880]">Staff Members</h3>
+        {/* <div className="flex space-x-2">
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -59,7 +59,7 @@ const StaffList = () => {
             <option value="expired">Expired</option>
             <option value="revoked">Revoked</option>
           </select>
-        </div>
+        </div> */}
       </div>
 
       <div className="overflow-x-auto">
